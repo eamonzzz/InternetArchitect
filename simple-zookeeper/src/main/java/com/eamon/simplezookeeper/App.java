@@ -25,7 +25,7 @@ public class App {
 
         final CountDownLatch cdl = new CountDownLatch(1);
         //第一类：new zk 时候，传入的watch，这个watch，session级别的，跟path 、node没有关系。
-        ZooKeeper zk = new ZooKeeper(connectString, 30000, watchedEvent -> {
+        ZooKeeper zk = new ZooKeeper(connectString, 3000, watchedEvent -> {
             System.out.println("New ZK Event Type: "+watchedEvent.getType().name());
             // watch 回调方法
             String path = watchedEvent.getPath();
@@ -128,7 +128,7 @@ public class App {
         Stat stat1 = zk.setData("/eamon", "eamon-02".getBytes(), stat.getVersion());
         System.out.println(atomicInteger.get());
 
-        // 再次设置值时 会触发回调吗？  会
+        // 再次设置值时 会触发回调吗？不会
         Stat stat2 = zk.setData("/eamon", "eamon-03".getBytes(), stat1.getVersion());
         System.out.println(atomicInteger.get());
 
