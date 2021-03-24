@@ -1,11 +1,8 @@
 package com.eamon.simplezookeeper;
 
 import org.apache.zookeeper.*;
-import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Stat;
 
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -105,10 +102,12 @@ public class App {
         byte[] data = zk.getData("/eamon", new Watcher() {
             @Override
             public void process(WatchedEvent watchedEvent) {
+                // 当 /eamon 节点变化时，本watch会被调用（一次性的，若要继续监听，则需重复注册）
                 System.out.println("zk get data: " + watchedEvent.toString());
                 atomicInteger.getAndAdd(1);
-                // 当 /eamon 节点变化时，本watch会被调用
-                // 此时一般的逻辑是  会再次去拿最新的 节点值
+
+
+                // 此时一般的逻辑是  会再次去拿最新的 节点值，然后重新将 watch 注册进去，这样数据每次更改时都可以被watch到
                 try {
                     byte[] data1 = zk.getData("/eamon", this, stat);
                     System.out.println("data changed: "+new String(data1));
@@ -128,7 +127,7 @@ public class App {
         Stat stat1 = zk.setData("/eamon", "eamon-02".getBytes(), stat.getVersion());
         System.out.println(atomicInteger.get());
 
-        // 再次设置值时 会触发回调吗？不会
+        // 再次设置值时 会触发回调吗？不会，因为 watch 是一次性注册，若想每次都触发，则需要每次都重新注册
         Stat stat2 = zk.setData("/eamon", "eamon-03".getBytes(), stat1.getVersion());
         System.out.println(atomicInteger.get());
 
