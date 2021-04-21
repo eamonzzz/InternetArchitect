@@ -2,8 +2,6 @@ package com.eamon.simplezookeeper.configcenter01;
 
 import org.apache.zookeeper.ZooKeeper;
 
-import java.util.concurrent.CountDownLatch;
-
 /**
  * @author eamonzzz
  * @date 2021-03-25 09:27

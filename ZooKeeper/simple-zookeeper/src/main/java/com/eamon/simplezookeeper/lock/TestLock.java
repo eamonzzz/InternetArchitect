@@ -2,8 +2,6 @@ package com.eamon.simplezookeeper.lock;
 
 import org.apache.zookeeper.ZooKeeper;
 
-import java.util.ArrayList;
-
 /**
  * 使用 zookeeper 作为分布式锁
  *
