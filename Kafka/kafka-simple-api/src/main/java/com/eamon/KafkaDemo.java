@@ -1,20 +1,17 @@
 package com.eamon;
 
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Test;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Properties;
-import java.util.Set;
+import java.time.Duration;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -76,13 +73,15 @@ public class KafkaDemo {
         Properties properties = new Properties();
         properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrap_servers);
         // kafka 是一个持久化数据的MQ  数据-> byte[]，不会对数据进行干预，双方要约定编解码
-        properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "consumer-group");
+        properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "consumer1");
+        //latest, earliest, none
+        properties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
-        properties.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG,"true");
+        properties.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
 
-        KafkaConsumer<String, String> kafkaConsumer = new KafkaConsumer<String, String>(properties);
+        KafkaConsumer<String, String> kafkaConsumer = new KafkaConsumer<>(properties);
 
         kafkaConsumer.subscribe(Collections.singletonList(topic), new ConsumerRebalanceListener() {
             @Override
@@ -96,10 +95,21 @@ public class KafkaDemo {
             }
         });
 
-        Set<TopicPartition> topicPartitions = kafkaConsumer.assignment();
+        while (true) {
+            ConsumerRecords<String, String> consumerRecords = kafkaConsumer.poll(Duration.ofMillis(10000));
 
+            Set<TopicPartition> topicPartitions = consumerRecords.partitions();
+            System.out.println("--- "+consumerRecords.count()+" ---");
+            for (TopicPartition topicPartition : topicPartitions) {
+                // 按分区消费
+                List<ConsumerRecord<String, String>> records = consumerRecords.records(topicPartition);
+                for (ConsumerRecord<String, String> record : records) {
+                    String recordStr = record.toString();
+                    System.out.println(recordStr);
+                }
+            }
+        }
 
-        //ConsumerRecords<String, String> consumerRecords = kafkaConsumer.poll();
     }
 
 
