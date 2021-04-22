@@ -1,9 +1,7 @@
 package com.eamon;
 
-import kafka.tools.ConsoleConsumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -13,8 +11,8 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -26,8 +24,8 @@ import java.util.concurrent.Future;
  */
 public class KafkaDemo {
 
-    private static final String bootstrap_servers = "10.211.55.15:9092,10.211.55.15:9093,10.211.55.15:9094";
-    // kafka-topics.sh --bootstrap-server kafka_01:9092 --create --topic kafka-simple-api --partitions 2 --replication-factor 2
+    private static final String bootstrap_servers = "kafka1:9092,kafka2:9093,kafka3:9094";
+    // kafka-topics.sh --bootstrap-server kafka1:9092 --create --topic kafka-simple-api --partitions 2 --replication-factor 2
     private static final String topic = "kafka-simple-api";
 
     @Test
@@ -78,15 +76,15 @@ public class KafkaDemo {
         Properties properties = new Properties();
         properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrap_servers);
         // kafka 是一个持久化数据的MQ  数据-> byte[]，不会对数据进行干预，双方要约定编解码
-        properties.setProperty(ConsumerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        properties.setProperty(ConsumerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "consumer-group");
 
         properties.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG,"true");
 
         KafkaConsumer<String, String> kafkaConsumer = new KafkaConsumer<String, String>(properties);
 
-        kafkaConsumer.subscribe(Arrays.asList(topic), new ConsumerRebalanceListener() {
+        kafkaConsumer.subscribe(Collections.singletonList(topic), new ConsumerRebalanceListener() {
             @Override
             public void onPartitionsRevoked(Collection<TopicPartition> collection) {
                 System.out.println(">>> onPartitionsRevoked");
