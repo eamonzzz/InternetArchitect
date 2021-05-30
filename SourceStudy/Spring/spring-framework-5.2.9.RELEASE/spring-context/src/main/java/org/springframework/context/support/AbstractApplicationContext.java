@@ -156,6 +156,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	static {
 		// Eagerly load the ContextClosedEvent class to avoid weird classloader issues
 		// on application shutdown in WebLogic 8.1. (Reported by Dustin Woods.)
+		// 积极加载ContextClosedEvent类，以避免在WebLogic 8.1中关闭应用程序时出现奇怪的类加载器问题
 		ContextClosedEvent.class.getName();
 	}
 
@@ -517,9 +518,18 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	public void refresh() throws BeansException, IllegalStateException {
 		synchronized (this.startupShutdownMonitor) {
 			// Prepare this context for refreshing.
+			// 基本的准备工作【前戏】
+			// 1. 获取应用的启动事件
+			// 2. 设置关闭和活跃标志位
+			// 3. 初始化属性资源
+			// 4. 获取环境对象并设置值
+			// 5. 初始化应用事件监听器集合
+			// 6. 初始化需要发布的应用事件的集合
 			prepareRefresh();
 
 			// Tell the subclass to refresh the internal bean factory.
+			// 创建容器对象，DefaultListableBeanFactory
+			// 加载 xml 配置文件的属性到当前 Bean 工厂中，最重要的是 BeanDefinition
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
@@ -585,7 +595,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	protected void prepareRefresh() {
 		// Switch to active.
 		this.startupDate = System.currentTimeMillis();
-		this.closed.set(false);
+		// 设置关闭标志位为false
+ 		this.closed.set(false);
+ 		// 设置激活标志位为true
 		this.active.set(true);
 
 		if (logger.isDebugEnabled()) {
@@ -598,13 +610,19 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 
 		// Initialize any placeholder property sources in the context environment.
+		// 初始化属性资源，默认为空实现
 		initPropertySources();
 
 		// Validate that all properties marked as required are resolvable:
 		// see ConfigurablePropertyResolver#setRequiredProperties
+
+		// getEnvironment 会初始化标准的环境对象 StandardEnvironment，在创建 StandardEnvironment 时，会先初始化父类，调用父类的构造函数
+		// 父类的构造函数会调用 customizePropertySources 定制化属性资源，父类的这个方法是一个空实现，此时会调用子类的实现方法，
+		// 所以实际调用的是 StandardEnvironment 中的 customizePropertySources方法
 		getEnvironment().validateRequiredProperties();
 
 		// Store pre-refresh ApplicationListeners...
+		// 初始化应用事件监听器集合，做扩展使用
 		if (this.earlyApplicationListeners == null) {
 			this.earlyApplicationListeners = new LinkedHashSet<>(this.applicationListeners);
 		}
@@ -616,6 +634,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// Allow for the collection of early ApplicationEvents,
 		// to be published once the multicaster is available...
+		// 初始化应用事件的集合
 		this.earlyApplicationEvents = new LinkedHashSet<>();
 	}
 
