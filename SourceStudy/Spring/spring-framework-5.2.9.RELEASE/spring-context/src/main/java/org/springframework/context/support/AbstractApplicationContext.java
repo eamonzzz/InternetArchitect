@@ -519,12 +519,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		synchronized (this.startupShutdownMonitor) {
 			// Prepare this context for refreshing.
 			// 基本的准备工作【前戏】
-			// 1. 获取应用的启动事件
+			// 1. 获取应用的启动时间
 			// 2. 设置关闭和活跃标志位
 			// 3. 初始化属性资源
-			// 4. 获取环境对象并设置值
-			// 5. 初始化应用事件监听器集合
-			// 6. 初始化需要发布的应用事件的集合
+			// 4. 获取环境对象并设置值（Environment）
+			// 5. 初始化应用事件监听器集合对象（默认为空的）
+			// 6. 初始化需要发布的应用事件的集合对象（默认为空的）
 			prepareRefresh();
 
 			// Tell the subclass to refresh the internal bean factory.
